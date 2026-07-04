@@ -226,11 +226,14 @@ impl AgentManager {
                     session_id, session.provider_name
                 );
                 if let Err(e) = agent.restore_provider_from_session(&session).await {
-                    tracing::warn!(
+                    // Propagate the error instead of silently swallowing it.
+                    // This ensures the user knows why the provider is not set
+                    // (e.g., missing API key, invalid config, etc.)
+                    return Err(anyhow::anyhow!(
                         "Failed to restore provider for session {}: {}",
                         session_id,
                         e
-                    );
+                    ));
                 }
             }
             extension_results = agent.load_extensions_from_session(&session).await;
